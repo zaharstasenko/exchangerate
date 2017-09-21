@@ -31,8 +31,8 @@ public class RateViewActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
 
         for (Disposable disposable : mApiCalls){
             disposable.dispose();
