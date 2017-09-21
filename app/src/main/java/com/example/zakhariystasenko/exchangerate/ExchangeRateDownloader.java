@@ -1,13 +1,12 @@
 package com.example.zakhariystasenko.exchangerate;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import io.reactivex.Observable;
 import retrofit2.http.GET;
-import retrofit2.http.Url;
+import retrofit2.http.Query;
 
 interface ExchangeRateDownloader {
-    @GET
-    Observable<ArrayList<Map<String, Object>>> getCurrentData(@Url String url);
+    @GET("exchange?date[request_date]&json")
+    Observable<ArrayList<Currency>> getCurrentData(@Query("date[request_date]") String date);
 }

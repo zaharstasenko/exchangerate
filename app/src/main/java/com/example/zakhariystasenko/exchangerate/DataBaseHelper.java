@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 class DataBaseHelper extends SQLiteOpenHelper {
@@ -58,7 +60,9 @@ class DataBaseHelper extends SQLiteOpenHelper {
     ArrayList<Currency> getCurrentRateFromDataBase() {
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
-        String currentDate = RateViewActivity.getCurrentDate();
+
+        String currentDate = DateConverter.getDateDD_MM_YYYY();
+
 
         ArrayList<Currency> data = new ArrayList<>();
 
@@ -69,6 +73,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
             do {
                 int dateIndex = cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE);
+                Log.d("Database...",cursor.getString(dateIndex));
 
                 if (cursor.getString(dateIndex).equals(currentDate)) {
                     Currency currency = new Currency();
@@ -93,5 +98,24 @@ class DataBaseHelper extends SQLiteOpenHelper {
         }
 
         return data;
+    }
+
+    private ArrayList<String> getMissingDates(ArrayList<String> requiredDates){
+        SQLiteDatabase database = this.getReadableDatabase();
+        Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                String date = cursor.getString(cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE));
+
+                if (requiredDates.contains(date)){
+                    requiredDates.remove(date);
+                }
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return requiredDates;
     }
 }

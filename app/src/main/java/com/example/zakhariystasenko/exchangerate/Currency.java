@@ -1,9 +1,14 @@
 package com.example.zakhariystasenko.exchangerate;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 class Currency {
+    @SerializedName("cc")
     private String mCurrencyId;
+    @SerializedName("txt")
     private String mCurrencyName;
-    private int mCurrencyImageId;
+    @SerializedName("rate")
     private double mCurrencyRate;
 
     String getCurrencyName() {
@@ -14,27 +19,19 @@ class Currency {
         return mCurrencyId;
     }
 
-    int getCurrencyImageId() {
-        return mCurrencyImageId;
-    }
-
     Double getCurrencyRate() {
         return mCurrencyRate;
     }
 
     void setCurrencyName(String currencyName) {
-        this.mCurrencyName = currencyName;
+        mCurrencyName = currencyName;
     }
 
     void setCurrencyId(String currencyId) {
-        this.mCurrencyId = currencyId;
-    }
-
-    void setCurrencyImageId(int currencyImageId) {
-        this.mCurrencyImageId = currencyImageId;
+        mCurrencyId = currencyId;
     }
 
     void setCurrencyRate(double currencyRate) {
-        this.mCurrencyRate = currencyRate;
+        mCurrencyRate = currencyRate;
     }
 }
