@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:rowCount="2"
+    android:columnCount="3"
+    android:layout_margin="1dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <ImageView
+        android:id="@+id/currency_image"
+        android:layout_width="20pt"
+        android:layout_height="20pt"
+        android:layout_rowSpan="2"
+        android:layout_gravity="center_vertical"
+        app:srcCompat="@android:drawable/btn_dialog" />
+
+    <TextView
+        android:id="@+id/currency_name"
+        android:layout_columnSpan="2"
+        android:layout_gravity="center_horizontal"
+        android:textAppearance="@android:style/TextAppearance.Large" />
+
+    <TextView
+        android:id="@+id/currency_id"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:textAppearance="@android:style/TextAppearance.Large" />
+
+    <TextView
+        android:id="@+id/currency_rate"
+        android:textAppearance="@android:style/TextAppearance.Large" />
+
+</GridLayout>
