@@ -1,6 +1,5 @@
 package com.example.zakhariystasenko.exchangerate;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 class Currency {

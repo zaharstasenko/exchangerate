@@ -3,11 +3,7 @@ package com.example.zakhariystasenko.exchangerate;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
-/**
- * Created by zakhariy.stasenko on 9/20/2017.
- */
-
-public class EmptyObserver<T> implements Observer<T> {
+class SimpleObserver<T> implements Observer<T> {
     @Override
     public void onSubscribe(Disposable d) {
 

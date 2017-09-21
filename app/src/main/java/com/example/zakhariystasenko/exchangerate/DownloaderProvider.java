@@ -7,7 +7,7 @@ import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-class DownloadProvider {
+class DownloaderProvider {
     static ExchangeRateDownloader createDownloader(String url) {
         return new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(new GsonBuilder().create()))

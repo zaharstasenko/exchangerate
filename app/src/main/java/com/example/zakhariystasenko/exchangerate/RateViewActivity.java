@@ -5,9 +5,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -15,17 +16,31 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class RateViewActivity extends Activity {
-    private static final String BANK_URL = "https://bank.gov.ua/NBUStatService/v1/statdirectory/";
-    private CurrencyListAdapter mAdapter = new CurrencyListAdapter(this);
-    private DataBaseHelper dataBaseHelper = new DataBaseHelper(this);
+    private CurrencyListAdapter mAdapter;
+    private DataBaseHelper dataBaseHelper;
+    private ArrayList<Disposable> mApiCalls = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rate_view_layout);
 
+        initializeDataBaseHelper();
         initializeList();
         setDataToAdapter();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        for (Disposable disposable : mApiCalls){
+            disposable.dispose();
+        }
+    }
+
+    private void initializeDataBaseHelper(){
+        dataBaseHelper = new DataBaseHelper(this);
     }
 
     private void setDataToAdapter(){
@@ -42,12 +57,14 @@ public class RateViewActivity extends Activity {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        mAdapter = new CurrencyListAdapter(PicassoProvider.createPicasso(this));
         recyclerView.setAdapter(mAdapter);
     }
 
-    private void downloadExchangeRateData(ArrayList<String> dates) {
+    private void downloadExchangeRateData(List<String> dates) {
         for (int i = 0; i < dates.size(); ++i) {
-            DownloadProvider.createDownloader(BANK_URL).getCurrentData(dates.get(i))
+            DownloaderProvider.createDownloader("https://bank.gov.ua/NBUStatService/v1/statdirectory/")
+                    .getCurrentData(dates.get(i))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(createObserver());
@@ -55,12 +72,13 @@ public class RateViewActivity extends Activity {
     }
 
     private Observer<ArrayList<Currency>> createObserver() {
-        return new EmptyObserver<ArrayList<Currency>>() {
+        return new SimpleObserver<ArrayList<Currency>>() {
             private Disposable mDisposable;
 
             @Override
             public void onSubscribe(Disposable d) {
                 mDisposable = d;
+                mApiCalls.add(mDisposable);
             }
 
             @Override
@@ -71,14 +89,13 @@ public class RateViewActivity extends Activity {
                     mAdapter.setCurrencyData(value);
                 }
 
+                mApiCalls.remove(mDisposable);
                 mDisposable.dispose();
             }
         };
     }
 
     void downloadCurrentExchangeRate() {
-        ArrayList<String> necessaryDate = new ArrayList<>();
-        necessaryDate.add(DateConverter.getDateYYYYMMDD());
-        downloadExchangeRateData(necessaryDate);
+        downloadExchangeRateData(Collections.singletonList(DateConverter.getDateYYYYMMDD()));
     }
 }
