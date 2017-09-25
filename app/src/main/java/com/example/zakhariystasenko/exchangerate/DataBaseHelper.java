@@ -8,17 +8,16 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 class DataBaseHelper extends SQLiteOpenHelper {
-    private static final String KEY_ID = "_id";
-    private static final String DATABASE_NAME = "MyCurrencyDatabase";
-    private static final String TABLE_CURRENCY = "MyTableCurrency";
+    private static final String DATABASE_NAME = "CurrencyDatabase";
+    private static final String TABLE_CURRENCY = "TableCurrency";
 
     private static final String KEY_NAME = "txt";
     private static final String KEY_CUR_ID = "cc";
     private static final String KEY_EXCHANGE_DATE = "exchangedate";
-    private static final String KEY_R = "r030";
     private static final String KEY_RATE = "rate";
 
     DataBaseHelper(Context context) {
@@ -27,27 +26,25 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL("create table " + TABLE_CURRENCY + "(" + KEY_ID
-                + " text, " + KEY_NAME + " text, " + KEY_CUR_ID + " text, "
-                + KEY_EXCHANGE_DATE + " text, " + KEY_R + " text, " + KEY_RATE + " text" + ");");
+        Log.d("Check","Database on create");
+        sqLiteDatabase.execSQL("create table " + TABLE_CURRENCY + "(" + KEY_NAME + " text, " +
+                KEY_CUR_ID + " text, " + KEY_EXCHANGE_DATE + " text, " + KEY_RATE + " real" + ");");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
     }
 
-    void writeToDatabase(ArrayList<Map<String, Object>> data) {
+    void writeToDatabase(ArrayList<Currency> data) {
         SQLiteDatabase database = this.getWritableDatabase();
 
-        int index = 0;
-
-        for (Map<String, Object> map : data) {
+        for (Currency currency : data) {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(DataBaseHelper.KEY_ID, index + "");
 
-            for (String key : map.keySet()) {
-                contentValues.put(key, map.get(key).toString());
-            }
+            contentValues.put(DataBaseHelper.KEY_CUR_ID, currency.getCurrencyId());
+            contentValues.put(DataBaseHelper.KEY_RATE, currency.getCurrencyRate());
+            contentValues.put(DataBaseHelper.KEY_NAME, currency.getCurrencyName());
+            contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE,currency.getExchangeDate());
 
             database.insert(DataBaseHelper.TABLE_CURRENCY, null, contentValues);
         }
@@ -59,9 +56,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
 
-        String currentDate = DateConverter.getDateDD_MM_YYYY();
-
-
+        String currentDate = DateManager.getDateDD_MM_YYYY();
         ArrayList<Currency> data = new ArrayList<>();
 
         if (cursor.moveToFirst()) {
@@ -71,14 +66,13 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
             do {
                 int dateIndex = cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE);
-                Log.d("Database...",cursor.getString(dateIndex));
 
                 if (cursor.getString(dateIndex).equals(currentDate)) {
                     Currency currency = new Currency();
 
                     currency.setCurrencyName(cursor.getString(nameIndex));
                     currency.setCurrencyId(cursor.getString(currencyIdIndex));
-                    currency.setCurrencyRate(Double.parseDouble(cursor.getString(rateIndex)));
+                    currency.setCurrencyRate(cursor.getDouble(rateIndex));
 
                     data.add(currency);
                 }
@@ -98,22 +92,30 @@ class DataBaseHelper extends SQLiteOpenHelper {
         return data;
     }
 
-    private ArrayList<String> getMissingDates(ArrayList<String> requiredDates){
+    Map<String,Double> getDataForPeriod(String currencyId){
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
 
-        if (cursor.moveToFirst()) {
-            do {
-                String date = cursor.getString(cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE));
+        ArrayList<String> requiredDates = DateManager.getLast30DatesDD_MM_YYYY();
+        Map<String,Double> res = new HashMap<>();
 
-                if (requiredDates.contains(date)){
-                    requiredDates.remove(date);
+        if (cursor.moveToFirst()) {
+            int dateIndex = cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE);
+            int idIndex = cursor.getColumnIndex(DataBaseHelper.KEY_CUR_ID);
+            int rateIndex = cursor.getColumnIndex(DataBaseHelper.KEY_RATE);
+
+            do {
+                String date = cursor.getString(dateIndex);
+                String id = cursor.getString(idIndex);
+
+                if (requiredDates.contains(date) && currencyId.equals(id)){
+                    res.put(date,cursor.getDouble(rateIndex));
                 }
 
             } while (cursor.moveToNext());
         }
 
         cursor.close();
-        return requiredDates;
+        return res;
     }
 }

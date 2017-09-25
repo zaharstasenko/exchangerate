@@ -1,101 +1,70 @@
 package com.example.zakhariystasenko.exchangerate;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.squareup.picasso.Picasso;
 
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import javax.inject.Inject;
 
-public class RateViewActivity extends Activity {
+public class RateViewActivity extends Activity implements CurrencyListAdapter.Callback {
     private CurrencyListAdapter mAdapter;
-    private DataBaseHelper dataBaseHelper;
-    private ArrayList<Disposable> mApiCalls = new ArrayList<>();
+    static DataManager mDataManager;
+
+    @Inject
+    ExchangeRateDownloader mDownloader;
+
+    @Inject
+    Picasso mPicasso;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rate_view_layout);
 
-        initializeDataBaseHelper();
+        DaggerRateViewActivityInjector.builder().picassoModule(new PicassoModule(this))
+                .build()
+                .inject(this);
+
         initializeList();
-        setDataToAdapter();
+        initializeDataManager();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-
-        for (Disposable disposable : mApiCalls){
-            disposable.dispose();
-        }
+        mDataManager.disposeApiCalls();
     }
 
-    private void initializeDataBaseHelper(){
-        dataBaseHelper = new DataBaseHelper(this);
-    }
-
-    private void setDataToAdapter(){
-        ArrayList<Currency> data = dataBaseHelper.getCurrentRateFromDataBase();
-
-        if (data != null) {
-            mAdapter.setCurrencyData(data);
-        } else {
-            downloadCurrentExchangeRate();
-        }
-    }
-
-    private void initializeList() {
+    @Inject
+    void initializeList() {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mAdapter = new CurrencyListAdapter(PicassoProvider.createPicasso(this));
+        mAdapter = new CurrencyListAdapter(this);
         recyclerView.setAdapter(mAdapter);
     }
 
-    private void downloadExchangeRateData(List<String> dates) {
-        for (int i = 0; i < dates.size(); ++i) {
-            DownloaderProvider.createDownloader("https://bank.gov.ua/NBUStatService/v1/statdirectory/")
-                    .getCurrentData(dates.get(i))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(createObserver());
-        }
+    void initializeDataManager(){
+        mDataManager = new DataManager(new DataBaseHelper(this), mDownloader, mAdapter);
     }
 
-    private Observer<ArrayList<Currency>> createObserver() {
-        return new SimpleObserver<ArrayList<Currency>>() {
-            private Disposable mDisposable;
+    @Override
+    public void onItemClick(Currency currency) {
+        Intent graphActivityIntent = new Intent(this, GraphViewActivity.class);
+        graphActivityIntent.putExtras(GraphViewActivity.getStartBundle(currency.getCurrencyId()));
 
-            @Override
-            public void onSubscribe(Disposable d) {
-                mDisposable = d;
-                mApiCalls.add(mDisposable);
-            }
-
-            @Override
-            public void onNext(ArrayList<Currency> value) {
-                //dataBaseHelper.writeToDatabase(value);
-
-                if (mAdapter.getItemCount() == 0) {
-                    mAdapter.setCurrencyData(value);
-                }
-
-                mApiCalls.remove(mDisposable);
-                mDisposable.dispose();
-            }
-        };
+        mDataManager.graphActivityIsRunning = true;
+        startActivity(graphActivityIntent);
     }
 
-    void downloadCurrentExchangeRate() {
-        downloadExchangeRateData(Collections.singletonList(DateConverter.getDateYYYYMMDD()));
+    @Override
+    public Picasso getPicasso() {
+        return mPicasso;
     }
 }

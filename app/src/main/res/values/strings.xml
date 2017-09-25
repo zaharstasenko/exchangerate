@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ExchangeRate</string>
+    <string name="graph_description">Курс %s за останні 30 днів:</string>
 </resources>
