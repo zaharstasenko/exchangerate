@@ -34,6 +34,7 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
     DataManager(DataBaseHelper dataBaseHelper, ExchangeRateDownloader downloader,
                 CurrencyListAdapter adapter) {
         mDataBaseHelper = dataBaseHelper;
+
         mDownloader = downloader;
         mAdapter = adapter;
 
@@ -147,7 +148,7 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
     }
 
     @Override
-    public void onWriteFinished() {
+    public void onAllWriteFinished() {
         mDataIsWriting = false;
         mPeriodRequestCallback.getData(
                 parseData(mDataBaseHelper.getDataForPeriod(mCurrencyRequested)));
@@ -165,7 +166,9 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
 
     void disposeApiCalls() {
         if (!rateViewActivityIsRunning && !graphViewActivityIsRunning) {
-            mApiCall.dispose();
+            if (mApiCall != null) {
+                mApiCall.dispose();
+            }
         }
     }
 }

@@ -5,23 +5,22 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class DataBaseHelper extends SQLiteOpenHelper {
+class DataBaseHelper extends SQLiteOpenHelper implements DataWriterAsyncTask.DataWriterCallback<Currency> {
     private static final String DATABASE_NAME = "CurrencyDatabase";
-    private static final String TABLE_CURRENCY = "TableCurrency";
+    static final String TABLE_CURRENCY = "TableCurrency";
 
     private static final String KEY_NAME = "txt";
     private static final String KEY_CUR_ID = "cc";
     private static final String KEY_EXCHANGE_DATE = "exchangedate";
     private static final String KEY_RATE = "rate";
 
-    private DataWriter mDataWriter = null;
+    private DataWriterAsyncTask<Currency> mDataWriterAsyncTask = null;
     private ArrayList<ArrayList<Currency>> mDataForWriting = new ArrayList<>();
 
     private static DatabaseCallback mDatabaseCallback;
@@ -110,66 +109,47 @@ class DataBaseHelper extends SQLiteOpenHelper {
     void requestWriteToDatabase(ArrayList<Currency> data) {
         mDataForWriting.add(data);
 
-        if (mDataWriter == null) {
-            mDataWriter = new DataWriter();
-            mDataWriter.execute();
+        if (mDataWriterAsyncTask == null) {
+            mDataWriterAsyncTask = new DataWriterAsyncTask<>(this, this);
+            mDataWriterAsyncTask.execute(mDataForWriting.get(0));
+            mDataForWriting.remove(0);
         }
     }
 
-    private void writeNext() {
+    @Override
+    public void onCurrentWriteFinished() {
         if (mDataForWriting.size() > 0) {
-            mDataWriter = new DataWriter();
-            mDataWriter.execute();
+            mDataWriterAsyncTask = new DataWriterAsyncTask<>(this, this);
+            mDataWriterAsyncTask.execute(mDataForWriting.get(0));
+            mDataForWriting.remove(0);
         } else {
-            mDataWriter = null;
+            mDataWriterAsyncTask = null;
 
             if (mDatabaseCallback != null) {
-                mDatabaseCallback.onWriteFinished();
+                mDatabaseCallback.onAllWriteFinished();
             }
         }
     }
 
+    @Override
+    public ContentValues getContent(Currency data) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(DataBaseHelper.KEY_CUR_ID, data.getCurrencyId());
+        contentValues.put(DataBaseHelper.KEY_RATE, data.getCurrencyRate());
+        contentValues.put(DataBaseHelper.KEY_NAME, data.getCurrencyName());
+        contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE, data.getExchangeDate());
+
+        return contentValues;
+    }
+
     interface DatabaseCallback {
-        void onWriteFinished();
+        void onAllWriteFinished();
     }
 
     void setCallback(DatabaseCallback callback) {
         mDatabaseCallback = callback;
     }
 
-    private class DataWriter extends AsyncTask<Void, Void, Void> {
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            writeNext();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            write(mDataForWriting.get(0));
-            mDataForWriting.remove(0);
-
-            return null;
-        }
-
-        void write(ArrayList<Currency> data) {
-            SQLiteDatabase database = DataBaseHelper.this.getWritableDatabase();
-
-            for (Currency currency : data) {
-                ContentValues contentValues = new ContentValues();
-
-                contentValues.put(DataBaseHelper.KEY_CUR_ID, currency.getCurrencyId());
-                contentValues.put(DataBaseHelper.KEY_RATE, currency.getCurrencyRate());
-                contentValues.put(DataBaseHelper.KEY_NAME, currency.getCurrencyName());
-                contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE, currency.getExchangeDate());
-
-                database.insert(DataBaseHelper.TABLE_CURRENCY, null, contentValues);
-            }
-
-            DataBaseHelper.this.close();
-            Log.d("CHECK", "Writing finished");
-        }
-
-    }
 }
