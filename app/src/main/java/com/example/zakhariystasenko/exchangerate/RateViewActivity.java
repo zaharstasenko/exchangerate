@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 
 import com.squareup.picasso.Picasso;
 
@@ -33,11 +32,14 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
 
         initializeList();
         initializeDataManager();
+
+        mDataManager.rateViewActivityIsRunning = true;
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        mDataManager.rateViewActivityIsRunning = false;
         mDataManager.disposeApiCalls();
     }
 
@@ -59,7 +61,6 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
         Intent graphActivityIntent = new Intent(this, GraphViewActivity.class);
         graphActivityIntent.putExtras(GraphViewActivity.getStartBundle(currency.getCurrencyId()));
 
-        mDataManager.graphActivityIsRunning = true;
         startActivity(graphActivityIntent);
     }
 

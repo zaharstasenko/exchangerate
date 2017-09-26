@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -20,36 +21,23 @@ class DataBaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EXCHANGE_DATE = "exchangedate";
     private static final String KEY_RATE = "rate";
 
+    private DataWriter mDataWriter = null;
+    private ArrayList<ArrayList<Currency>> mDataForWriting = new ArrayList<>();
+
+    private static DatabaseCallback mDatabaseCallback;
+
     DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        Log.d("Check","Database on create");
         sqLiteDatabase.execSQL("create table " + TABLE_CURRENCY + "(" + KEY_NAME + " text, " +
                 KEY_CUR_ID + " text, " + KEY_EXCHANGE_DATE + " text, " + KEY_RATE + " real" + ");");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-    }
-
-    void writeToDatabase(ArrayList<Currency> data) {
-        SQLiteDatabase database = this.getWritableDatabase();
-
-        for (Currency currency : data) {
-            ContentValues contentValues = new ContentValues();
-
-            contentValues.put(DataBaseHelper.KEY_CUR_ID, currency.getCurrencyId());
-            contentValues.put(DataBaseHelper.KEY_RATE, currency.getCurrencyRate());
-            contentValues.put(DataBaseHelper.KEY_NAME, currency.getCurrencyName());
-            contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE,currency.getExchangeDate());
-
-            database.insert(DataBaseHelper.TABLE_CURRENCY, null, contentValues);
-        }
-
-        this.close();
     }
 
     ArrayList<Currency> getCurrentRateFromDataBase() {
@@ -92,12 +80,12 @@ class DataBaseHelper extends SQLiteOpenHelper {
         return data;
     }
 
-    Map<String,Double> getDataForPeriod(String currencyId){
+    Map<String, Double> getDataForPeriod(String currencyId) {
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
 
         ArrayList<String> requiredDates = DateManager.getLast30DatesDD_MM_YYYY();
-        Map<String,Double> res = new HashMap<>();
+        Map<String, Double> res = new HashMap<>();
 
         if (cursor.moveToFirst()) {
             int dateIndex = cursor.getColumnIndex(DataBaseHelper.KEY_EXCHANGE_DATE);
@@ -108,8 +96,8 @@ class DataBaseHelper extends SQLiteOpenHelper {
                 String date = cursor.getString(dateIndex);
                 String id = cursor.getString(idIndex);
 
-                if (requiredDates.contains(date) && currencyId.equals(id)){
-                    res.put(date,cursor.getDouble(rateIndex));
+                if (requiredDates.contains(date) && currencyId.equals(id)) {
+                    res.put(date, cursor.getDouble(rateIndex));
                 }
 
             } while (cursor.moveToNext());
@@ -117,5 +105,71 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
         cursor.close();
         return res;
+    }
+
+    void requestWriteToDatabase(ArrayList<Currency> data) {
+        mDataForWriting.add(data);
+
+        if (mDataWriter == null) {
+            mDataWriter = new DataWriter();
+            mDataWriter.execute();
+        }
+    }
+
+    private void writeNext() {
+        if (mDataForWriting.size() > 0) {
+            mDataWriter = new DataWriter();
+            mDataWriter.execute();
+        } else {
+            mDataWriter = null;
+
+            if (mDatabaseCallback != null) {
+                mDatabaseCallback.onWriteFinished();
+            }
+        }
+    }
+
+    interface DatabaseCallback {
+        void onWriteFinished();
+    }
+
+    void setCallback(DatabaseCallback callback) {
+        mDatabaseCallback = callback;
+    }
+
+    private class DataWriter extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            writeNext();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            write(mDataForWriting.get(0));
+            mDataForWriting.remove(0);
+
+            return null;
+        }
+
+        void write(ArrayList<Currency> data) {
+            SQLiteDatabase database = DataBaseHelper.this.getWritableDatabase();
+
+            for (Currency currency : data) {
+                ContentValues contentValues = new ContentValues();
+
+                contentValues.put(DataBaseHelper.KEY_CUR_ID, currency.getCurrencyId());
+                contentValues.put(DataBaseHelper.KEY_RATE, currency.getCurrencyRate());
+                contentValues.put(DataBaseHelper.KEY_NAME, currency.getCurrencyName());
+                contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE, currency.getExchangeDate());
+
+                database.insert(DataBaseHelper.TABLE_CURRENCY, null, contentValues);
+            }
+
+            DataBaseHelper.this.close();
+            Log.d("CHECK", "Writing finished");
+        }
+
     }
 }
