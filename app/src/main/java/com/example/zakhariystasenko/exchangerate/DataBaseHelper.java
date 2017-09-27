@@ -5,25 +5,31 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
-class DataBaseHelper extends SQLiteOpenHelper implements DataWriterAsyncTask.DataWriterCallback<Currency> {
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
+class DataBaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "CurrencyDatabase";
-    static final String TABLE_CURRENCY = "TableCurrency";
+    private static final String TABLE_CURRENCY = "TableCurrency";
 
     private static final String KEY_NAME = "txt";
     private static final String KEY_CUR_ID = "cc";
     private static final String KEY_EXCHANGE_DATE = "exchangedate";
     private static final String KEY_RATE = "rate";
 
-    private DataWriterAsyncTask<Currency> mDataWriterAsyncTask = null;
-    private ArrayList<ArrayList<Currency>> mDataForWriting = new ArrayList<>();
-
     private static DatabaseCallback mDatabaseCallback;
+
+    private static int mWritesCounter = 0;
+    private static Scheduler mWriteThread = Schedulers.newThread();
 
     DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, 1);
@@ -107,40 +113,8 @@ class DataBaseHelper extends SQLiteOpenHelper implements DataWriterAsyncTask.Dat
     }
 
     void requestWriteToDatabase(ArrayList<Currency> data) {
-        mDataForWriting.add(data);
-
-        if (mDataWriterAsyncTask == null) {
-            mDataWriterAsyncTask = new DataWriterAsyncTask<>(this, this);
-            mDataWriterAsyncTask.execute(mDataForWriting.get(0));
-            mDataForWriting.remove(0);
-        }
-    }
-
-    @Override
-    public void onCurrentWriteFinished() {
-        if (mDataForWriting.size() > 0) {
-            mDataWriterAsyncTask = new DataWriterAsyncTask<>(this, this);
-            mDataWriterAsyncTask.execute(mDataForWriting.get(0));
-            mDataForWriting.remove(0);
-        } else {
-            mDataWriterAsyncTask = null;
-
-            if (mDatabaseCallback != null) {
-                mDatabaseCallback.onAllWriteFinished();
-            }
-        }
-    }
-
-    @Override
-    public ContentValues getContent(Currency data) {
-        ContentValues contentValues = new ContentValues();
-
-        contentValues.put(DataBaseHelper.KEY_CUR_ID, data.getCurrencyId());
-        contentValues.put(DataBaseHelper.KEY_RATE, data.getCurrencyRate());
-        contentValues.put(DataBaseHelper.KEY_NAME, data.getCurrencyName());
-        contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE, data.getExchangeDate());
-
-        return contentValues;
+        createObservable(data);
+        ++mWritesCounter;
     }
 
     interface DatabaseCallback {
@@ -151,5 +125,60 @@ class DataBaseHelper extends SQLiteOpenHelper implements DataWriterAsyncTask.Dat
         mDatabaseCallback = callback;
     }
 
+    private void createObservable(ArrayList<Currency> data) {
+        Observable.fromCallable(new CallableWriter(data))
+                .subscribeOn(mWriteThread)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(createObserver());
+    }
 
+    private Observer<Boolean> createObserver() {
+        return new SimpleObserver<Boolean>() {
+            @Override
+            public void onNext(Boolean value) {
+                --mWritesCounter;
+
+                if (mWritesCounter == 0) {
+                    if (mDatabaseCallback != null) {
+                        mDatabaseCallback.onAllWriteFinished();
+                    }
+                }
+            }
+        };
+    }
+
+    private class CallableWriter implements Callable<Boolean> {
+        ArrayList<Currency> mData;
+        CallableWriter(ArrayList<Currency> data) {
+            mData = data;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            writeData(mData);
+            return true;
+        }
+
+    }
+
+    private void writeData(ArrayList<Currency> data) {
+        SQLiteDatabase database = this.getWritableDatabase();
+
+        for (Currency item : data) {
+            database.insert(DataBaseHelper.TABLE_CURRENCY, null, getContent(item));
+        }
+
+        this.close();
+    }
+
+    private ContentValues getContent(Currency data) {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(DataBaseHelper.KEY_CUR_ID, data.getCurrencyId());
+        contentValues.put(DataBaseHelper.KEY_RATE, data.getCurrencyRate());
+        contentValues.put(DataBaseHelper.KEY_NAME, data.getCurrencyName());
+        contentValues.put(DataBaseHelper.KEY_EXCHANGE_DATE, data.getExchangeDate());
+
+        return contentValues;
+    }
 }

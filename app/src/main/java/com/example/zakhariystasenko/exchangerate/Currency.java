@@ -43,9 +43,4 @@ class Currency {
     void setCurrencyRate(double currencyRate) {
         mCurrencyRate = currencyRate;
     }
-
-    @Override
-    public String toString() {
-        return mExchangeDate + " " + mCurrencyName + " " + mCurrencyId + " " + mCurrencyRate;
-    }
 }

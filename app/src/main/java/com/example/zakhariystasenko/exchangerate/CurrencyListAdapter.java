@@ -14,8 +14,8 @@ import java.util.Map;
 class CurrencyListAdapter extends RecyclerView.Adapter<ViewHolder> {
     private ArrayList<Currency> mCurrencyData = new ArrayList<>();
     private Map<String, Integer> mImages = new ImagesData().getImages();
-    private Callback mCallback;
-    private Picasso mPicasso;
+    private final Callback mCallback;
+    private final Picasso mPicasso;
 
     CurrencyListAdapter(Callback callback) {
         mCallback = callback;
@@ -47,7 +47,9 @@ class CurrencyListAdapter extends RecyclerView.Adapter<ViewHolder> {
         holder.mCurrencyId.setText(currency.getCurrencyId());
         holder.mCurrencyRate.setText(currency.getCurrencyRate().toString());
 
-        mPicasso.load(mImages.get(currency.getCurrencyId())).fit().into(holder.mCurrencyImage);
+        mPicasso.load(mImages.get(currency.getCurrencyId()))
+                .fit()
+                .into(holder.mCurrencyImage);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,6 +62,7 @@ class CurrencyListAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     interface Callback {
         void onItemClick(Currency currency);
+
         Picasso getPicasso();
     }
 }

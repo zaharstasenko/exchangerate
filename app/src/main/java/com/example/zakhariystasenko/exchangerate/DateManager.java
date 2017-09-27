@@ -1,22 +1,32 @@
 package com.example.zakhariystasenko.exchangerate;
 
+import android.util.Log;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
 class DateManager {
-    static String getDateYYYYMMDD() {
-        Calendar calendar = Calendar.getInstance();
+    private static SimpleDateFormat yyyyMMddFormat = new SimpleDateFormat("yyyyMMdd");
+    private static SimpleDateFormat dd_MM_yyyyFormat = new SimpleDateFormat("dd.MM.yyyy");
 
-        return calendar.get(Calendar.YEAR) + formatDate(calendar.get(Calendar.MONTH) + 1)
-                + formatDate(calendar.get(Calendar.DAY_OF_MONTH));
+    static String getDateYYYYMMDD() {
+        return yyyyMMddFormat.format(new Date());
     }
 
     static String getDateYYYYMMDD(String dateDD_MM_YYYY) {
-        String[] dateParts = dateDD_MM_YYYY.split("\\.");
-        return dateParts[2] + dateParts[1] + dateParts[0];
+        try {
+            return yyyyMMddFormat.format(dd_MM_yyyyFormat.parse(dateDD_MM_YYYY));
+        } catch (ParseException e){
+            Log.d("DateManager", e.toString());
+            return null;
+        }
     }
 
     private static String formatDate(int date) {
@@ -28,14 +38,11 @@ class DateManager {
     }
 
     static String getDateDD_MM_YYYY() {
-        Calendar calendar = Calendar.getInstance();
-
-        return formatDate(calendar.get(Calendar.DAY_OF_MONTH)) + "." + formatDate(calendar.get(Calendar.MONTH) + 1)
-                + "." + calendar.get(Calendar.YEAR);
+        return dd_MM_yyyyFormat.format(new Date());
     }
 
-    static String getDateDD_MM_YYYY(int day, int month, int year) {
-        return formatDate(day) + "." + formatDate(month) + "." + formatDate(year);
+    private static String getDateDD_MM_YYYY(int day, int month, int year) {
+        return formatDate(day) + "." + formatDate(month) + "." + year;
     }
 
     static List<String> getMissingDates(Set<String> dates) {
