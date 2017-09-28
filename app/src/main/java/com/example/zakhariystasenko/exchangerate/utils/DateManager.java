@@ -1,4 +1,4 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.utils;
 
 import android.util.Log;
 
@@ -12,15 +12,15 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
-class DateManager {
+public class DateManager {
     private static SimpleDateFormat yyyyMMddFormat = new SimpleDateFormat("yyyyMMdd");
     private static SimpleDateFormat dd_MM_yyyyFormat = new SimpleDateFormat("dd.MM.yyyy");
 
-    static String getDateYYYYMMDD() {
+    public static String getDateYYYYMMDD() {
         return yyyyMMddFormat.format(new Date());
     }
 
-    static String getDateYYYYMMDD(String dateDD_MM_YYYY) {
+    public static String getDateYYYYMMDD(String dateDD_MM_YYYY) {
         try {
             return yyyyMMddFormat.format(dd_MM_yyyyFormat.parse(dateDD_MM_YYYY));
         } catch (ParseException e){
@@ -37,7 +37,7 @@ class DateManager {
         }
     }
 
-    static String getDateDD_MM_YYYY() {
+    public static String getDateDD_MM_YYYY() {
         return dd_MM_yyyyFormat.format(new Date());
     }
 
@@ -45,7 +45,7 @@ class DateManager {
         return formatDate(day) + "." + formatDate(month) + "." + year;
     }
 
-    static List<String> getMissingDates(Set<String> dates) {
+    public static List<String> getMissingDates(Set<String> dates) {
         List<String> period = getLast30DatesDD_MM_YYYY();
         List<String> res = new ArrayList<>();
 
@@ -60,7 +60,7 @@ class DateManager {
         return res;
     }
 
-    static ArrayList<String> getLast30DatesDD_MM_YYYY() {
+    public static ArrayList<String> getLast30DatesDD_MM_YYYY() {
         ArrayList<String> requiredData = new ArrayList<>();
 
         GregorianCalendar calendar =

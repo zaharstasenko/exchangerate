@@ -1,4 +1,6 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.rate;
+
+import com.example.zakhariystasenko.exchangerate.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +13,7 @@ class ImagesData {
     }
 
     ImagesData(){
-        mImages.put("DZD",R.drawable.dzd);
+        mImages.put("DZD", R.drawable.dzd);
         mImages.put("AZN",R.drawable.azn);
         mImages.put("AUD",R.drawable.aud);
         mImages.put("BDT",R.drawable.bdt);

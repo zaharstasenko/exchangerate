@@ -1,8 +1,8 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.rate;
 
 import com.google.gson.annotations.SerializedName;
 
-class Currency {
+public class Currency {
     @SerializedName("exchangedate")
     private String mExchangeDate;
     @SerializedName("cc")
@@ -12,35 +12,35 @@ class Currency {
     @SerializedName("rate")
     private double mCurrencyRate;
 
-    String getExchangeDate() {
+    public String getExchangeDate() {
         return mExchangeDate;
     }
 
-    void setExchangeDate(String exchangeDate) {
+    public void setExchangeDate(String exchangeDate) {
         mExchangeDate = exchangeDate;
     }
 
-    String getCurrencyName() {
+    public String getCurrencyName() {
         return mCurrencyName;
     }
 
-    String getCurrencyId() {
+    public String getCurrencyId() {
         return mCurrencyId;
     }
 
-    Double getCurrencyRate() {
+    public Double getCurrencyRate() {
         return mCurrencyRate;
     }
 
-    void setCurrencyName(String currencyName) {
+    public void setCurrencyName(String currencyName) {
         mCurrencyName = currencyName;
     }
 
-    void setCurrencyId(String currencyId) {
+    public void setCurrencyId(String currencyId) {
         mCurrencyId = currencyId;
     }
 
-    void setCurrencyRate(double currencyRate) {
+    public void setCurrencyRate(double currencyRate) {
         mCurrencyRate = currencyRate;
     }
 }

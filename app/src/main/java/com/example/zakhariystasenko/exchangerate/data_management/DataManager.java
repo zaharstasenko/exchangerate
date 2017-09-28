@@ -1,6 +1,10 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.data_management;
 
-import android.util.Log;
+import com.example.zakhariystasenko.exchangerate.graph.GraphViewActivity;
+import com.example.zakhariystasenko.exchangerate.rate.Currency;
+import com.example.zakhariystasenko.exchangerate.rate.RateViewActivity;
+import com.example.zakhariystasenko.exchangerate.utils.DateManager;
+import com.example.zakhariystasenko.exchangerate.utils.SimpleObserver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,39 +20,33 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-class DataManager implements DataBaseHelper.DatabaseCallback {
+public class DataManager implements DataBaseHelper.DatabaseCallback {
     private Map<String, Double> mDataForPeriod = new HashMap<>();
     private String mCurrencyRequested;
     private final int PERIOD = 30;
+
+    private DayRequestCallback mDayRequestCallback;
     private PeriodRequestCallback mPeriodRequestCallback;
 
     private DataBaseHelper mDataBaseHelper;
     private ExchangeRateDownloader mDownloader;
-    private CurrencyListAdapter mAdapter;
     private Disposable mApiCall;
 
-    boolean graphViewActivityIsRunning = false;
-    boolean rateViewActivityIsRunning = false;
+    private Map<String,Boolean> mRunningActivities = initActivityMap();
     private static boolean mDataIsWriting = false;
 
-    DataManager(DataBaseHelper dataBaseHelper, ExchangeRateDownloader downloader,
-                CurrencyListAdapter adapter) {
+    public DataManager(DataBaseHelper dataBaseHelper, ExchangeRateDownloader downloader) {
         mDataBaseHelper = dataBaseHelper;
-
         mDownloader = downloader;
-        mAdapter = adapter;
-
-        refreshAdapterData();
     }
 
-    private void refreshAdapterData() {
-        ArrayList<Currency> data = mDataBaseHelper.getCurrentRateFromDataBase();
+    private Map<String,Boolean> initActivityMap(){
+        Map<String,Boolean> res = new HashMap<>();
 
-        if (data != null) {
-            mAdapter.setCurrencyData(data);
-        } else {
-            downloadExchangeRateData();
-        }
+        res.put(RateViewActivity.class.getSimpleName(),false);
+        res.put(GraphViewActivity.class.getSimpleName(),false);
+
+        return res;
     }
 
     private void downloadExchangeRateData() {
@@ -83,7 +81,7 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
 
             @Override
             public void onNext(ArrayList<Currency> value) {
-                mAdapter.setCurrencyData(value);
+                mDayRequestCallback.getData(value);
                 mDataBaseHelper.requestWriteToDatabase(value);
 
                 mDisposable.dispose();
@@ -124,7 +122,19 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
         };
     }
 
-    void requestDataForPeriod(String requestedCurrency, PeriodRequestCallback callback) {
+    public void requestDataForDay(DayRequestCallback callback){
+        mDayRequestCallback = callback;
+
+        ArrayList<Currency> data = mDataBaseHelper.getCurrentRateFromDataBase();
+
+        if (data != null) {
+            mDayRequestCallback.getData(data);
+        } else {
+            downloadExchangeRateData();
+        }
+    }
+
+    public void requestDataForPeriod(String requestedCurrency, PeriodRequestCallback callback) {
         mCurrencyRequested = requestedCurrency;
         mPeriodRequestCallback = callback;
 
@@ -143,7 +153,11 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
         }
     }
 
-    interface PeriodRequestCallback {
+    public interface DayRequestCallback {
+        void getData(ArrayList<Currency> data);
+    }
+
+    public interface PeriodRequestCallback {
         void getData(Map<Integer, Double> data);
     }
 
@@ -164,8 +178,21 @@ class DataManager implements DataBaseHelper.DatabaseCallback {
         return res;
     }
 
-    void disposeApiCalls() {
-        if (!rateViewActivityIsRunning && !graphViewActivityIsRunning) {
+    public void notifyActivityStateChange(String activityName, Boolean isRunning){
+        mRunningActivities.remove(activityName);
+        mRunningActivities.put(activityName,isRunning);
+    }
+
+    public void disposeApiCalls() {
+        boolean needDispose = true;
+
+        for (Boolean activityIsRunning : mRunningActivities.values()){
+            if (activityIsRunning){
+                needDispose = false;
+            }
+        }
+
+        if (needDispose) {
             if (mApiCall != null) {
                 mApiCall.dispose();
             }

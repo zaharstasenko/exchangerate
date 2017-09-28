@@ -1,18 +1,26 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.graph;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
+import com.example.zakhariystasenko.exchangerate.R;
+import com.example.zakhariystasenko.exchangerate.data_management.DataManager;
+import com.example.zakhariystasenko.exchangerate.root.MyApplication;
 import com.jjoe64.graphview.*;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 public class GraphViewActivity extends Activity implements DataManager.PeriodRequestCallback {
     private static final String ID_KEY = "id";
     private String mCurrencyId;
+
+    @Inject
+    public DataManager mDataManager;
 
     @Override
     public void getData(Map<Integer, Double> data) {
@@ -22,22 +30,23 @@ public class GraphViewActivity extends Activity implements DataManager.PeriodReq
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.graph_view_layout);
+        setContentView(com.example.zakhariystasenko.exchangerate.R.layout.graph_view_layout);
 
-        RateViewActivity.mDataManager.graphViewActivityIsRunning = true;
+        MyApplication.injector(this).inject(this);
+        mDataManager.notifyActivityStateChange(GraphViewActivity.class.getSimpleName(), true);
 
         mCurrencyId = getIntent().getStringExtra(ID_KEY);
-        RateViewActivity.mDataManager.requestDataForPeriod(mCurrencyId, this);
+        mDataManager.requestDataForPeriod(mCurrencyId, this);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        RateViewActivity.mDataManager.graphViewActivityIsRunning = false;
-        RateViewActivity.mDataManager.disposeApiCalls();
+        mDataManager.notifyActivityStateChange(GraphViewActivity.class.getSimpleName(), false);
+        mDataManager.disposeApiCalls();
     }
 
-    void drawGraph(Map<Integer, Double> data) {
+    public void drawGraph(Map<Integer, Double> data) {
         GraphView graph = findViewById(R.id.graph);
         DataPoint[] dataPoints = new DataPoint[data.size()];
 
@@ -53,7 +62,7 @@ public class GraphViewActivity extends Activity implements DataManager.PeriodReq
         graph.addSeries(series);
     }
 
-    static Bundle getStartBundle(String currencyId) {
+    public static Bundle getStartBundle(String currencyId) {
         Bundle bundle = new Bundle();
 
         bundle.putString(ID_KEY, currencyId);

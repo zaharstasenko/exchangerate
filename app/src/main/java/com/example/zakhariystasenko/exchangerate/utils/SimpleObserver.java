@@ -1,9 +1,9 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.utils;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
-class SimpleObserver<T> implements Observer<T> {
+public class SimpleObserver<T> implements Observer<T> {
     @Override
     public void onSubscribe(Disposable d) {
 

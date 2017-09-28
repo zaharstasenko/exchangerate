@@ -1,10 +1,12 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.rate;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.zakhariystasenko.exchangerate.R;
 
 class ViewHolder extends RecyclerView.ViewHolder {
     TextView mCurrencyName;

@@ -1,10 +1,14 @@
-package com.example.zakhariystasenko.exchangerate;
+package com.example.zakhariystasenko.exchangerate.data_management;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.example.zakhariystasenko.exchangerate.rate.Currency;
+import com.example.zakhariystasenko.exchangerate.utils.DateManager;
+import com.example.zakhariystasenko.exchangerate.utils.SimpleObserver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +21,7 @@ import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-class DataBaseHelper extends SQLiteOpenHelper {
+public class DataBaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "CurrencyDatabase";
     private static final String TABLE_CURRENCY = "TableCurrency";
 
@@ -31,7 +35,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
     private static int mWritesCounter = 0;
     private static Scheduler mWriteThread = Schedulers.newThread();
 
-    DataBaseHelper(Context context) {
+    public DataBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, 1);
     }
 
