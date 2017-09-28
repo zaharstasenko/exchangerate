@@ -26,7 +26,8 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rate_view_layout);
 
-        DaggerRateViewActivityInjector.builder().picassoModule(new PicassoModule(this))
+        DaggerRateViewActivityInjector.builder()
+                .picassoModule(new PicassoModule(this))
                 .build()
                 .inject(this);
 

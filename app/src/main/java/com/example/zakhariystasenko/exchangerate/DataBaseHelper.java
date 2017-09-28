@@ -149,6 +149,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
     private class CallableWriter implements Callable<Boolean> {
         ArrayList<Currency> mData;
+
         CallableWriter(ArrayList<Currency> data) {
             mData = data;
         }
@@ -162,13 +163,13 @@ class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     private void writeData(ArrayList<Currency> data) {
-        SQLiteDatabase database = this.getWritableDatabase();
+        SQLiteDatabase database = getWritableDatabase();
 
         for (Currency item : data) {
             database.insert(DataBaseHelper.TABLE_CURRENCY, null, getContent(item));
         }
 
-        this.close();
+        close();
     }
 
     private ContentValues getContent(Currency data) {
