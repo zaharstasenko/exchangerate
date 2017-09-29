@@ -1,4 +1,4 @@
-package com.example.zakhariystasenko.exchangerate.rate;
+package com.example.zakhariystasenko.exchangerate.data_management.data_models;
 
 import com.google.gson.annotations.SerializedName;
 

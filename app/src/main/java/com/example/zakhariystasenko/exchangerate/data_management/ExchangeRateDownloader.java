@@ -1,14 +1,14 @@
 package com.example.zakhariystasenko.exchangerate.data_management;
 
-import com.example.zakhariystasenko.exchangerate.rate.Currency;
+import com.example.zakhariystasenko.exchangerate.data_management.data_models.Currency;
 
 import java.util.ArrayList;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
 public interface ExchangeRateDownloader {
     @GET("exchange?json")
-    Observable<ArrayList<Currency>> getCurrentData(@Query("date") String date);
+    Single<ArrayList<Currency>> getCurrentDataNormal(@Query("date") String date);
 }

@@ -7,22 +7,28 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import com.example.zakhariystasenko.exchangerate.data_management.data_models.Currency;
+import com.example.zakhariystasenko.exchangerate.data_management.data_models.DailyExchangeRate;
 import com.example.zakhariystasenko.exchangerate.data_management.DataManager;
+import com.example.zakhariystasenko.exchangerate.utils.MyDate;
 import com.example.zakhariystasenko.exchangerate.graph.GraphViewActivity;
 import com.example.zakhariystasenko.exchangerate.root.MyApplication;
 import com.example.zakhariystasenko.exchangerate.R;
+import com.example.zakhariystasenko.exchangerate.utils.SimpleSingleObserver;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
+import java.util.Date;
 
 import javax.inject.Inject;
 
-public class RateViewActivity extends Activity implements CurrencyListAdapter.Callback,
-        DataManager.DayRequestCallback {
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
+public class RateViewActivity extends Activity implements CurrencyListAdapter.Callback {
     private CurrencyListAdapter mAdapter;
     @Inject
     public DataManager mDataManager;
-
     @Inject
     public Picasso mPicasso;
 
@@ -31,19 +37,26 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
         super.onCreate(savedInstanceState);
         setContentView(R.layout.rate_view_layout);
 
+
         MyApplication.injector(this).inject(this);
-
         initializeList();
-
-        mDataManager.notifyActivityStateChange(RateViewActivity.class.getSimpleName(), true);
-        mDataManager.requestDataForDay(this);
+        requestExchangeRate();
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mDataManager.notifyActivityStateChange(RateViewActivity.class.getSimpleName(), false);
-        mDataManager.disposeApiCalls();
+    private void requestExchangeRate() {
+        mDataManager.exchangeRateForDate(new MyDate(new Date()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(createObserver());
+    }
+
+    private SingleObserver<DailyExchangeRate> createObserver() {
+        return new SimpleSingleObserver<DailyExchangeRate>() {
+            @Override
+            public void onSuccess(DailyExchangeRate value) {
+                mAdapter.setCurrencyData(value.getCurrencies());
+            }
+        };
     }
 
     private void initializeList() {
@@ -65,10 +78,5 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
     @Override
     public Picasso getPicasso() {
         return mPicasso;
-    }
-
-    @Override
-    public void getData(ArrayList<Currency> data) {
-        mAdapter.setCurrencyData(data);
     }
 }
