@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">ExchangeRate</string>
-    <string name="graph_description">%s exchange rate for last 30 days:</string>
+    <string name="graph_description">%1$s exchange rate for %2$s :</string>
 </resources>

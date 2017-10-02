@@ -36,4 +36,5 @@ dependencies {
     annotationProcessor 'com.google.dagger:dagger-compiler:2.6'
     compile 'com.google.dagger:dagger:2.6'
     compile 'com.jjoe64:graphview:4.2.1'
+    compile group: 'joda-time', name: 'joda-time', version: '2.3'
 }

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.Currency;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.DailyExchangeRate;
@@ -21,7 +22,6 @@ import java.util.Date;
 
 import javax.inject.Inject;
 
-import io.reactivex.SingleObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -47,16 +47,12 @@ public class RateViewActivity extends Activity implements CurrencyListAdapter.Ca
         mDataManager.exchangeRateForDate(new MyDate(new Date()))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(createObserver());
-    }
-
-    private SingleObserver<DailyExchangeRate> createObserver() {
-        return new SimpleSingleObserver<DailyExchangeRate>() {
-            @Override
-            public void onSuccess(DailyExchangeRate value) {
-                mAdapter.setCurrencyData(value.getCurrencies());
-            }
-        };
+                .subscribe(new SimpleSingleObserver<DailyExchangeRate>() {
+                    @Override
+                    public void onSuccess(DailyExchangeRate value) {
+                        mAdapter.setCurrencyData(value.getCurrencies());
+                    }
+                });
     }
 
     private void initializeList() {

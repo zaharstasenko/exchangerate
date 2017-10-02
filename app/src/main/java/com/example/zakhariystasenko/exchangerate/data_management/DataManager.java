@@ -4,6 +4,7 @@ import com.example.zakhariystasenko.exchangerate.data_management.data_models.Cur
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.DailyExchangeRate;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.PeriodExchangeRate;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.Currency;
+import com.example.zakhariystasenko.exchangerate.utils.DatabaseMissingDataException;
 import com.example.zakhariystasenko.exchangerate.utils.MyDate;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.reactivex.functions.Function;
 
 public class DataManager implements IDataManger {
@@ -27,18 +29,31 @@ public class DataManager implements IDataManger {
     public Single<DailyExchangeRate> exchangeRateForDate(final MyDate date) {
         return mDataBaseHelper
                 .exchangeRateForDate(date)
-                .onErrorResumeNext(mDownloader
-                                .getCurrentDataNormal(date.getDateYYYYMMDD())
-                                .map(new Function<ArrayList<Currency>, DailyExchangeRate>() {
-                                    @Override
-                                    public DailyExchangeRate apply(ArrayList<Currency> currencies) throws Exception {
-                                        DailyExchangeRate dailyExchangeRate = new DailyExchangeRate(date, currencies);
+                .onErrorResumeNext(new Function<Throwable, SingleSource<? extends DailyExchangeRate>>() {
+                    @Override
+                    public SingleSource<? extends DailyExchangeRate> apply(Throwable throwable) throws Exception {
+                        if (throwable instanceof DatabaseMissingDataException) {
+                            return downloadByDate(date);
+                        } else {
+                            return Single.error(throwable);
+                        }
+                    }
+                });
+    }
 
-                                        mDataBaseHelper.writeExchangeRateForDate(date, dailyExchangeRate);
+    private Single<DailyExchangeRate> downloadByDate(final MyDate date) {
+        return mDownloader
+                .getCurrentDataNormal(date.getDateForRetrofit())
+                .map(new Function<ArrayList<Currency>, DailyExchangeRate>() {
+                    @Override
+                    public DailyExchangeRate apply(ArrayList<Currency> currencies) throws Exception {
+                        DailyExchangeRate dailyExchangeRate = new DailyExchangeRate(date, currencies);
 
-                                        return dailyExchangeRate;
-                                    }
-                                }));
+                        mDataBaseHelper.writeExchangeRateForDate(date, dailyExchangeRate);
+
+                        return dailyExchangeRate;
+                    }
+                });
     }
 
     @Override

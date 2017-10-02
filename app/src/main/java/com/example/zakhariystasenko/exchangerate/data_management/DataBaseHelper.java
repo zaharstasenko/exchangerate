@@ -5,9 +5,11 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-import com.example.zakhariystasenko.exchangerate.data_management.data_models.DailyExchangeRate;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.Currency;
+import com.example.zakhariystasenko.exchangerate.data_management.data_models.DailyExchangeRate;
+import com.example.zakhariystasenko.exchangerate.utils.DatabaseMissingDataException;
 import com.example.zakhariystasenko.exchangerate.utils.MyDate;
 
 import java.util.ArrayList;
@@ -47,7 +49,7 @@ public class DataBaseHelper extends SQLiteOpenHelper implements IDatabase {
         SQLiteDatabase database = this.getReadableDatabase();
         Cursor cursor = database.query(DataBaseHelper.TABLE_CURRENCY, null, null, null, null, null, null);
 
-        String currentDate = date.getDateDD_MM_YYYY();
+        String currentDate = date.getDateForDatabase();
         ArrayList<Currency> data = new ArrayList<>();
 
         if (cursor.moveToFirst()) {
@@ -95,7 +97,8 @@ public class DataBaseHelper extends SQLiteOpenHelper implements IDatabase {
                         if (currencies != null) {
                             e.onSuccess(new DailyExchangeRate(date, currencies));
                         } else {
-                            e.onError(new Throwable());
+                            Log.d("Check", "Need download");
+                            e.onError(new DatabaseMissingDataException());
                         }
                     }
                 });
@@ -104,14 +107,19 @@ public class DataBaseHelper extends SQLiteOpenHelper implements IDatabase {
     }
 
     @Override
-    public void writeExchangeRateForDate(MyDate date, DailyExchangeRate model) {
-        SQLiteDatabase database = getWritableDatabase();
+    public void writeExchangeRateForDate(final MyDate date, final DailyExchangeRate model) {
+        mExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                SQLiteDatabase database = getWritableDatabase();
 
-        for (Currency item : model.getCurrencies()) {
-            database.insert(DataBaseHelper.TABLE_CURRENCY, null, getContent(item));
-        }
+                for (Currency item : model.getCurrencies()) {
+                    database.insert(DataBaseHelper.TABLE_CURRENCY, null, getContent(item));
+                }
 
-        close();
+                close();
+            }
+        });
     }
 
     private ContentValues getContent(Currency data) {

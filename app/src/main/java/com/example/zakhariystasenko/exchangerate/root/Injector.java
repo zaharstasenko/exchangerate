@@ -22,6 +22,5 @@ import dagger.Component;
 })
 public interface Injector {
     void inject(RateViewActivity activity);
-
     void inject(GraphViewActivity activity);
 }
