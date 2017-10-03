@@ -56,21 +56,20 @@ public class GraphViewActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-
         outState.putSerializable(RATE_DATA_KEY, mPeriodExchangeRate);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
         mPeriodExchangeRate = (PeriodExchangeRate) savedInstanceState.getSerializable(RATE_DATA_KEY);
         setDescriptionData();
         drawGraph();
     }
 
     public void drawGraph() {
-
+        GraphView graphView = findViewById(R.id.graph);
+        graphView.setData(mPeriodExchangeRate.getData());
     }
 
     void setDescriptionData() {
