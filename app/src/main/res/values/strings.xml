@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">ExchangeRate</string>
-    <string name="graph_description">%1$s exchange rate for %2$s :</string>
+    <string name="graph_description">%1$s exchange rate for \n%2$s</string>
+    <string name="min_value">Min rate: %f</string>
+    <string name="max_value">Max rate: %f</string>
 </resources>

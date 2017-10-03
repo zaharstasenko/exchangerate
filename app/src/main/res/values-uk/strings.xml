@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="graph_description">Курс %1$s за %2$s :</string>
+    <string name="app_name">Курс валют</string>
+    <string name="graph_description">Курс %1$s за \n%2$s</string>
+    <string name="min_value">Мінімальний курс: %f</string>
+    <string name="max_value">Максимальний курс: %f</string>
 </resources>

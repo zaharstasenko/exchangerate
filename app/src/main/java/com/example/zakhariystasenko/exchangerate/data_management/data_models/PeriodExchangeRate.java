@@ -2,12 +2,13 @@ package com.example.zakhariystasenko.exchangerate.data_management.data_models;
 
 import com.example.zakhariystasenko.exchangerate.utils.MyDate;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class PeriodExchangeRate {
+public class PeriodExchangeRate implements Serializable {
     private CurrencyId mCurrencyId;
     private List<Double> mData = new ArrayList<>();
     private MyDate mStartDate;
@@ -38,7 +39,7 @@ public class PeriodExchangeRate {
         return mStartDate.getDateForDatabase() + " - " + mEndDate.getDateForDatabase();
     }
 
-    public String getCurrencyId(){
+    public String getCurrencyId() {
         return mCurrencyId.getId();
     }
 }
