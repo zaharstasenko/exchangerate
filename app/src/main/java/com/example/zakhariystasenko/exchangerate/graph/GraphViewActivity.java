@@ -3,7 +3,6 @@ package com.example.zakhariystasenko.exchangerate.graph;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.widget.TextView;
 
 import com.example.zakhariystasenko.exchangerate.R;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.PeriodExchangeRate;
@@ -47,7 +46,7 @@ public class GraphViewActivity extends Activity {
                         @Override
                         public void onSuccess(PeriodExchangeRate value) {
                             mPeriodExchangeRate = value;
-                            fillView();
+                            setDescriptionData();
                             drawGraph();
                         }
                     });
@@ -66,7 +65,7 @@ public class GraphViewActivity extends Activity {
         super.onRestoreInstanceState(savedInstanceState);
 
         mPeriodExchangeRate = (PeriodExchangeRate) savedInstanceState.getSerializable(RATE_DATA_KEY);
-        fillView();
+        setDescriptionData();
         drawGraph();
     }
 
@@ -74,7 +73,7 @@ public class GraphViewActivity extends Activity {
 
     }
 
-    void fillView() {
+    void setDescriptionData() {
         float minValue = 10000000f;
         float maxValue = 0f;
 
@@ -88,14 +87,9 @@ public class GraphViewActivity extends Activity {
             }
         }
 
-        ((TextView) findViewById(R.id.graph_description))
-                .setText(String.format(getString(R.string.graph_description),
-                        mPeriodExchangeRate.getCurrencyId(),
-                        mPeriodExchangeRate.getPeriod()));
-        ((TextView) findViewById(R.id.minValue))
-                .setText(String.format(getString(R.string.min_value), minValue));
-        ((TextView) findViewById(R.id.maxValue))
-                .setText(String.format(getString(R.string.max_value), maxValue));
+        GraphDescriptionView graphDescriptionView = findViewById(R.id.graph_description_view);
+        graphDescriptionView.setData(mPeriodExchangeRate.getCurrencyId(), mPeriodExchangeRate.getPeriod(),
+                    minValue, maxValue);
     }
 
     public static Bundle getStartBundle(String currencyId) {
