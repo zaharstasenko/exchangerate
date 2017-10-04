@@ -64,7 +64,7 @@ public class DataBaseHelper extends SQLiteOpenHelper implements IDatabase {
                     Currency currency = new Currency();
                     currency.setCurrencyName(cursor.getString(nameIndex));
                     currency.setCurrencyId(cursor.getString(currencyIdIndex));
-                    currency.setCurrencyRate(cursor.getDouble(rateIndex));
+                    currency.setCurrencyRate(cursor.getFloat(rateIndex));
 
                     data.add(currency);
                 }

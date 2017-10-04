@@ -5,20 +5,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import java.util.List;
 
 public class GraphView extends View {
     private Paint mPaint = new Paint();
-    private List<Double> mData;
+    private List<Float> mData;
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int min = Math.min(getMeasuredHeight(), getMeasuredWidth());
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height =  MeasureSpec.getSize(heightMeasureSpec);
 
+        int min = Math.min(height, width);
         setMeasuredDimension(min, min);
     }
 
@@ -29,7 +29,7 @@ public class GraphView extends View {
         mPaint.setColor(Color.RED);
     }
 
-    public void setData(List<Double> data) {
+    public void setData(List<Float> data) {
         mData = data;
         invalidate();
     }
@@ -37,14 +37,14 @@ public class GraphView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         if (mData != null) {
-            float interval = (float) canvas.getWidth() / (float) (mData.size() - 1);
-            float scaleFactor = canvas.getHeight() / getMax();
+            float interval = countInterval(canvas);
+            float scaleFactor = countScaleFactor(canvas);
 
             for (int i = 0; i < mData.size() - 1; ++i) {
                 float startX = i * interval;
-                float startY = canvas.getHeight() - mData.get(i).floatValue() * scaleFactor;
+                float startY = canvas.getHeight() - mData.get(i) * scaleFactor;
                 float endX = (i + 1) * interval;
-                float endY = canvas.getHeight() - mData.get(i + 1).floatValue() * scaleFactor;
+                float endY = canvas.getHeight() - mData.get(i + 1) * scaleFactor;
 
                 canvas.drawLine(startX, startY, endX, endY, mPaint);
             }
@@ -53,12 +53,20 @@ public class GraphView extends View {
         }
     }
 
-    private float getMax() {
-        float maxValue = 0f;
+    private float countInterval(Canvas canvas){
+        return (float) canvas.getWidth() / (float) (mData.size() - 1);
+    }
 
-        for (Double value : mData) {
+    private float countScaleFactor(Canvas canvas){
+        return canvas.getHeight() / getMax();
+    }
+
+    private float getMax() {
+        float maxValue = Float.MIN_VALUE;
+
+        for (Float value : mData) {
             if (maxValue < value) {
-                maxValue = value.floatValue();
+                maxValue = value;
             }
         }
 

@@ -38,19 +38,31 @@ public class GraphViewActivity extends Activity {
         MyApplication.injector(this).inject(this);
 
         if (savedInstanceState == null) {
-            mDataManager.exchangeRateForPeriod(new CurrencyId(getIntent().getStringExtra(ID_KEY)),
-                    new MyDate(new LocalDate().minusDays(30).toDate()), new MyDate(new Date()))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new SimpleSingleObserver<PeriodExchangeRate>() {
-                        @Override
-                        public void onSuccess(PeriodExchangeRate value) {
-                            mPeriodExchangeRate = value;
-                            setDescriptionData();
-                            drawGraph();
-                        }
-                    });
+            requestData();
+        } else {
+            restoreData(savedInstanceState);
         }
+    }
+
+    private void requestData() {
+        mDataManager.exchangeRateForPeriod(new CurrencyId(getIntent().getStringExtra(ID_KEY)),
+                new MyDate(new LocalDate().minusDays(30).toDate()), new MyDate(new Date()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SimpleSingleObserver<PeriodExchangeRate>() {
+                    @Override
+                    public void onSuccess(PeriodExchangeRate value) {
+                        mPeriodExchangeRate = value;
+                        setDescriptionData();
+                        drawGraph();
+                    }
+                });
+    }
+
+    private void restoreData(Bundle savedInstanceState) {
+        mPeriodExchangeRate = (PeriodExchangeRate) savedInstanceState.getSerializable(RATE_DATA_KEY);
+        setDescriptionData();
+        drawGraph();
     }
 
     @Override
@@ -59,36 +71,31 @@ public class GraphViewActivity extends Activity {
         outState.putSerializable(RATE_DATA_KEY, mPeriodExchangeRate);
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        mPeriodExchangeRate = (PeriodExchangeRate) savedInstanceState.getSerializable(RATE_DATA_KEY);
-        setDescriptionData();
-        drawGraph();
-    }
-
     public void drawGraph() {
         GraphView graphView = findViewById(R.id.graph);
         graphView.setData(mPeriodExchangeRate.getData());
     }
 
     void setDescriptionData() {
-        float minValue = 10000000f;
-        float maxValue = 0f;
+        float minValue = Float.MAX_VALUE;
+        float maxValue = Float.MIN_VALUE;
 
-        for (Double value : mPeriodExchangeRate.getData()) {
+        for (Float value : mPeriodExchangeRate.getData()) {
             if (minValue > value) {
-                minValue = value.floatValue();
+                minValue = value;
             }
 
             if (maxValue < value) {
-                maxValue = value.floatValue();
+                maxValue = value;
             }
         }
 
         GraphDescriptionView graphDescriptionView = findViewById(R.id.graph_description_view);
-        graphDescriptionView.setData(mPeriodExchangeRate.getCurrencyId(), mPeriodExchangeRate.getPeriod(),
-                    minValue, maxValue);
+        graphDescriptionView.setData(
+                mPeriodExchangeRate.getCurrencyId(),
+                mPeriodExchangeRate.getPeriod(),
+                minValue,
+                maxValue);
     }
 
     public static Bundle getStartBundle(String currencyId) {

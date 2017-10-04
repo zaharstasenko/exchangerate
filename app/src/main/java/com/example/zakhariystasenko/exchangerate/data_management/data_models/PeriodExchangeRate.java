@@ -10,7 +10,7 @@ import java.util.TreeMap;
 
 public class PeriodExchangeRate implements Serializable {
     private CurrencyId mCurrencyId;
-    private List<Double> mData = new ArrayList<>();
+    private List<Float> mData = new ArrayList<>();
     private MyDate mStartDate;
     private MyDate mEndDate;
 
@@ -19,19 +19,19 @@ public class PeriodExchangeRate implements Serializable {
         mStartDate = startDate;
         mEndDate = endDate;
 
-        Map<Integer, Double> sortingBuffer = new TreeMap<>();
+        Map<Integer, Float> sortingBuffer = new TreeMap<>();
 
         for (DailyExchangeRate dailyExchangeRate : dailyExchangeRates) {
             sortingBuffer.put(Integer.parseInt(dailyExchangeRate.getDate().getDateForRetrofit()),
                     dailyExchangeRate.getRateById(mCurrencyId.getId()));
         }
 
-        for (Double value : sortingBuffer.values()) {
+        for (Float value : sortingBuffer.values()) {
             mData.add(value);
         }
     }
 
-    public List<Double> getData() {
+    public List<Float> getData() {
         return mData;
     }
 

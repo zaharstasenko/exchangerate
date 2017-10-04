@@ -7,11 +7,12 @@
     <com.example.zakhariystasenko.exchangerate.graph.GraphView
         android:id="@+id/graph"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="match_parent" />
 
     <com.example.zakhariystasenko.exchangerate.graph.GraphDescriptionView
         android:id="@+id/graph_description_view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="match_parent"
+        android:orientation="vertical"/>
 
 </LinearLayout>
