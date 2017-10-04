@@ -23,16 +23,13 @@ public class GraphView extends View {
         int widthMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
-        if (widthMode == MeasureSpec.UNSPECIFIED) {
-            width = getMinimumWidth();
-            height = MeasureSpec.getSize(heightMeasureSpec);
-
-            dimension = Math.max(width, height);
+        if (widthMode == MeasureSpec.UNSPECIFIED
+                && heightMode == MeasureSpec.UNSPECIFIED) {
+            throw new IllegalArgumentException();
+        } else if (widthMode == MeasureSpec.UNSPECIFIED) {
+            dimension = MeasureSpec.getSize(heightMeasureSpec);
         } else if (heightMode == MeasureSpec.UNSPECIFIED) {
-            width = MeasureSpec.getSize(widthMeasureSpec);
-            height = getMinimumHeight();
-
-            dimension = Math.max(width, height);
+            dimension = MeasureSpec.getSize(widthMeasureSpec);
         } else {
             width = MeasureSpec.getSize(widthMeasureSpec);
             height = MeasureSpec.getSize(heightMeasureSpec);
