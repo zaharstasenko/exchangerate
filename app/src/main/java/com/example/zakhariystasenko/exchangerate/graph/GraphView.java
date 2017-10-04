@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import java.util.List;
@@ -15,19 +16,31 @@ public class GraphView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height =  MeasureSpec.getSize(heightMeasureSpec);
+        int width;
+        int height;
+        int dimension;
 
-        if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED){
-            width = getSuggestedMinimumWidth();
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+
+        if (widthMode == MeasureSpec.UNSPECIFIED) {
+            width = getMinimumWidth();
+            height = MeasureSpec.getSize(heightMeasureSpec);
+
+            dimension = Math.max(width, height);
+        } else if (heightMode == MeasureSpec.UNSPECIFIED) {
+            width = MeasureSpec.getSize(widthMeasureSpec);
+            height = getMinimumHeight();
+
+            dimension = Math.max(width, height);
+        } else {
+            width = MeasureSpec.getSize(widthMeasureSpec);
+            height = MeasureSpec.getSize(heightMeasureSpec);
+
+            dimension = Math.min(width, height);
         }
 
-        if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED){
-            height = getSuggestedMinimumHeight();
-        }
-
-        int min = Math.min(height, width);
-        setMeasuredDimension(min, min);
+        setMeasuredDimension(dimension, dimension);
     }
 
     public GraphView(Context context, AttributeSet set) {
@@ -61,11 +74,11 @@ public class GraphView extends View {
         }
     }
 
-    private float countInterval(Canvas canvas){
+    private float countInterval(Canvas canvas) {
         return (float) canvas.getWidth() / (float) (mData.size() - 1);
     }
 
-    private float countScaleFactor(Canvas canvas){
+    private float countScaleFactor(Canvas canvas) {
         return canvas.getHeight() / getMax();
     }
 
