@@ -18,6 +18,14 @@ public class GraphView extends View {
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height =  MeasureSpec.getSize(heightMeasureSpec);
 
+        if (MeasureSpec.getMode(widthMeasureSpec) == MeasureSpec.UNSPECIFIED){
+            width = getSuggestedMinimumWidth();
+        }
+
+        if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED){
+            height = getSuggestedMinimumHeight();
+        }
+
         int min = Math.min(height, width);
         setMeasuredDimension(min, min);
     }
