@@ -41,14 +41,13 @@ public class GraphView extends ViewGroup {
             dimension = Math.min(width, height);
         }
 
-        mPadding = dimension * 0.1f;
-        mStep = dimension * 0.2f;
-
         setMeasuredDimension(dimension, dimension);
     }
 
     public GraphView(Context context, AttributeSet set) {
         super(context, set);
+
+        setWillNotDraw(false);
 
         for (int i = 0; i <= SPLITTING_LINES_COUNT; ++i) {
             addView(new TextView(context));
@@ -57,6 +56,9 @@ public class GraphView extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        mPadding = r * 0.1f;
+        mStep = r * 0.2f;
+
         for (int i = 0; i < getChildCount(); ++i) {
             int val = (int) (mPadding + i * mStep);
             getChildAt(i).layout(0, val, val + 100, val + 100);
@@ -86,9 +88,7 @@ public class GraphView extends ViewGroup {
     }
 
     @Override
-    protected void dispatchDraw(Canvas canvas) {
-        super.dispatchDraw(canvas);
-
+    protected void onDraw(Canvas canvas) {
         if (mData != null) {
             drawBackgroundWeb(canvas);
             drawGraphLine(canvas);
