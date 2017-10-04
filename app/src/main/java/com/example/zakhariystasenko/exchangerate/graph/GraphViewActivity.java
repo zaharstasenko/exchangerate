@@ -3,7 +3,6 @@ package com.example.zakhariystasenko.exchangerate.graph;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import com.example.zakhariystasenko.exchangerate.R;
 import com.example.zakhariystasenko.exchangerate.data_management.data_models.PeriodExchangeRate;
@@ -12,9 +11,6 @@ import com.example.zakhariystasenko.exchangerate.data_management.DataManager;
 import com.example.zakhariystasenko.exchangerate.utils.MyDate;
 import com.example.zakhariystasenko.exchangerate.root.MyApplication;
 import com.example.zakhariystasenko.exchangerate.utils.SimpleSingleObserver;
-import com.jjoe64.graphview.*;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 import org.joda.time.LocalDate;
 
@@ -27,6 +23,9 @@ import io.reactivex.schedulers.Schedulers;
 
 public class GraphViewActivity extends Activity {
     private static final String ID_KEY = "id";
+    private static final String RATE_DATA_KEY = "rate data";
+
+    private PeriodExchangeRate mPeriodExchangeRate;
 
     @Inject
     public DataManager mDataManager;
@@ -34,10 +33,18 @@ public class GraphViewActivity extends Activity {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(com.example.zakhariystasenko.exchangerate.R.layout.graph_view_layout);
+        setContentView(R.layout.graph_view_layout);
 
         MyApplication.injector(this).inject(this);
 
+        if (savedInstanceState == null) {
+            requestData();
+        } else {
+            restoreData(savedInstanceState);
+        }
+    }
+
+    private void requestData() {
         mDataManager.exchangeRateForPeriod(new CurrencyId(getIntent().getStringExtra(ID_KEY)),
                 new MyDate(new LocalDate().minusDays(30).toDate()), new MyDate(new Date()))
                 .subscribeOn(Schedulers.io())
@@ -45,33 +52,55 @@ public class GraphViewActivity extends Activity {
                 .subscribe(new SimpleSingleObserver<PeriodExchangeRate>() {
                     @Override
                     public void onSuccess(PeriodExchangeRate value) {
-                        drawGraph(value);
+                        mPeriodExchangeRate = value;
+                        setDescriptionData();
+                        drawGraph();
                     }
                 });
     }
 
-    public void drawGraph(PeriodExchangeRate periodExchangeRate) {
-        GraphView graph = findViewById(R.id.graph);
-        DataPoint[] dataPoints = new DataPoint[periodExchangeRate.getData().size()];
+    private void restoreData(Bundle savedInstanceState) {
+        mPeriodExchangeRate = (PeriodExchangeRate) savedInstanceState.getSerializable(RATE_DATA_KEY);
+        setDescriptionData();
+        drawGraph();
+    }
 
-        int i = 0;
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(RATE_DATA_KEY, mPeriodExchangeRate);
+    }
 
-        for (Double val : periodExchangeRate.getData()) {
-            dataPoints[i] = new DataPoint(i++, val);
+    public void drawGraph() {
+        GraphView graphView = findViewById(R.id.graph);
+        graphView.setData(mPeriodExchangeRate.getData());
+    }
+
+    void setDescriptionData() {
+        float minValue = Float.MAX_VALUE;
+        float maxValue = Float.MIN_VALUE;
+
+        for (Float value : mPeriodExchangeRate.getData()) {
+            if (minValue > value) {
+                minValue = value;
+            }
+
+            if (maxValue < value) {
+                maxValue = value;
+            }
         }
 
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(dataPoints);
+        GraphDescriptionView graphDescriptionView = findViewById(R.id.graph_description_view);
 
-        graph.setTitle(String.format(getString(R.string.graph_description),
-                periodExchangeRate.getCurrencyId(),
-                periodExchangeRate.getPeriod()));
-        graph.setTitleTextSize(25);
-        graph.addSeries(series);
+        graphDescriptionView.setPeriodDescription(
+                mPeriodExchangeRate.getCurrencyId(),
+                mPeriodExchangeRate.getPeriod());
+        graphDescriptionView.setMinRate(minValue);
+        graphDescriptionView.setMaxRate(maxValue);
     }
 
     public static Bundle getStartBundle(String currencyId) {
         Bundle bundle = new Bundle();
-
         bundle.putString(ID_KEY, currencyId);
 
         return bundle;

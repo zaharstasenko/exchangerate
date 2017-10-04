@@ -6,12 +6,13 @@ import android.util.Log;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
 @SuppressLint("SimpleDateFormat")
-public class MyDate {
+public class MyDate implements Serializable {
     private Date mDate;
 
     private static final SimpleDateFormat RETROFIT_FORMAT = new SimpleDateFormat("yyyyMMdd");

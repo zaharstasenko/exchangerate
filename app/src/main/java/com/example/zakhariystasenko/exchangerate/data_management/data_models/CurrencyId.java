@@ -1,6 +1,8 @@
 package com.example.zakhariystasenko.exchangerate.data_management.data_models;
 
-public class CurrencyId {
+import java.io.Serializable;
+
+public class CurrencyId implements Serializable {
     private String mId;
 
     public String getId() {

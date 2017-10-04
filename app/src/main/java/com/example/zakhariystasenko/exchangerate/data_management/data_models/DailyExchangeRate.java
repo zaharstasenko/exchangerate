@@ -21,7 +21,7 @@ public class DailyExchangeRate {
         mCurrencies = currencies;
     }
 
-    Double getRateById(String id){
+    Float getRateById(String id){
         for (Currency currency : mCurrencies){
             if (currency.getCurrencyId().equals(id)){
                 return currency.getCurrencyRate();

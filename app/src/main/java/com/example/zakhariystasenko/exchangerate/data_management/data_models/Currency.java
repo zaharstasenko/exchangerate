@@ -10,7 +10,7 @@ public class Currency {
     @SerializedName("txt")
     private String mCurrencyName;
     @SerializedName("rate")
-    private double mCurrencyRate;
+    private float mCurrencyRate;
 
     public String getExchangeDate() {
         return mExchangeDate;
@@ -28,7 +28,7 @@ public class Currency {
         return mCurrencyId;
     }
 
-    public Double getCurrencyRate() {
+    public Float getCurrencyRate() {
         return mCurrencyRate;
     }
 
@@ -40,7 +40,7 @@ public class Currency {
         mCurrencyId = currencyId;
     }
 
-    public void setCurrencyRate(double currencyRate) {
+    public void setCurrencyRate(float currencyRate) {
         mCurrencyRate = currencyRate;
     }
 }
