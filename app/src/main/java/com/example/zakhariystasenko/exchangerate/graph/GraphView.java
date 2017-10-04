@@ -81,6 +81,7 @@ public class GraphView extends ViewGroup {
     public void setData(List<Float> data) {
         mData = data;
         invalidate();
+
         setValuesToGraphView();
     }
 
