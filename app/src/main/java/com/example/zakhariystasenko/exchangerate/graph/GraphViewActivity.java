@@ -91,11 +91,12 @@ public class GraphViewActivity extends Activity {
         }
 
         GraphDescriptionView graphDescriptionView = findViewById(R.id.graph_description_view);
-        graphDescriptionView.setData(
+
+        graphDescriptionView.setPeriodDescription(
                 mPeriodExchangeRate.getCurrencyId(),
-                mPeriodExchangeRate.getPeriod(),
-                minValue,
-                maxValue);
+                mPeriodExchangeRate.getPeriod());
+        graphDescriptionView.setMinRate(minValue);
+        graphDescriptionView.setMaxRate(maxValue);
     }
 
     public static Bundle getStartBundle(String currencyId) {

@@ -28,10 +28,16 @@ public class GraphDescriptionView extends LinearLayout {
         initialize();
     }
 
-    public void setData(String id, String period, Float minValue, Float maxValue) {
-        mPeriodDescription.setText(String.format(getResources().getString(R.string.graph_description), id, period));
-        mMinRate.setText(String.format(getResources().getString(R.string.min_value), minValue));
-        mMaxRate.setText(String.format(getResources().getString(R.string.max_value), maxValue));
+    public void setPeriodDescription(String id, String period) {
+        mPeriodDescription.setText(getResources().getString(R.string.graph_description, id, period));
+    }
+
+    public void setMinRate(Float minValue) {
+        mMinRate.setText(getResources().getString(R.string.min_value, minValue));
+    }
+
+    public void setMaxRate(Float maxValue) {
+        mMaxRate.setText(getResources().getString(R.string.max_value, maxValue));
     }
 
     void initialize() {
