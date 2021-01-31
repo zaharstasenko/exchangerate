@@ -48,9 +48,9 @@ class CurrencyListAdapter extends RecyclerView.Adapter<ViewHolder> {
         holder.mCurrencyId.setText(currency.getCurrencyId());
         holder.mCurrencyRate.setText(currency.getCurrencyRate().toString());
 
-        mPicasso.load(mImages.get(currency.getCurrencyId()))
-                .fit()
-                .into(holder.mCurrencyImage);
+//        mPicasso.load(mImages.get(currency.getCurrencyId()))
+//                .fit()
+//                .into(holder.mCurrencyImage);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
